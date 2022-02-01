@@ -51,10 +51,35 @@ __global__ void f4_pv_kernel(const float *__restrict__ u, float *__restrict__ v)
   v4.z = u4.z + v4.z;
   v4.w = u4.w + v4.w;
 
+  lap4.x = u4.x + v4.x;
+  lap4.y = u4.y + v4.y;
+  lap4.z = u4.z + v4.z;
+  lap4.w = u4.w + v4.w;
+
   v[i+0] = v4.x;
   v[i+1] = v4.y;
   v[i+2] = v4.z;
   v[i+3] = v4.w;
+}
+
+__global__ void f4_stencil_kernel(const float *__restrict__ u, float *__restrict__ v) {
+  int i = 4;
+
+  float4 *u4_ = (float4 *) (&u[i]);
+  float4 u4_ijk = u4_[0];
+  float4 u4_km1 = u4_[-1];
+  float4 u4_kp1 = u4_[1];
+
+  float4 lap;
+  lap.x = u4_km1.w + u4_ijk.x + u4_ijk.y;
+  lap.y = u4_ijk.x + u4_ijk.y + u4_ijk.z;
+  lap.z = u4_ijk.y + u4_ijk.z + u4_ijk.w;
+  lap.w = u4_ijk.z + u4_ijk.w + u4_kp1.x;
+
+  v[i+0] = lap.x;
+  v[i+1] = lap.y;
+  v[i+2] = lap.z;
+  v[i+3] = lap.w;
 }
 
 static void f4_p1() {
